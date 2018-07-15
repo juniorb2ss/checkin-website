@@ -18,7 +18,16 @@ Route::group(['middleware' => ['auth']], function() {
 });
 
 Route::group(['middleware' => ['auth'], 'prefix' => 'eventos'], function(){
-    Route::any('listar', 'EventController@eventListFilter')->name('eventos.listar');
+    // Particularmente eu não gosto do método ANY
+    // é muito globalizado e futuramente pode gerar grande carga de verbo na aplicação
+    // Se a rota recebe verbos multiplos, p.x:
+    // Route::match(['GET', 'POST', ...])
+    // 
+    // API: https://laravel.com/api/5.6/Illuminate/Routing/RouteRegistrar.html#method_match
+    // Documentação: https://laravel.com/docs/5.6/routing#basic-routing
+    Route::any('listar', 'EventController@eventListFilter')
+           ->name('eventos.listar');
+
     Route::get('visualizar/{name}/{id}', 'EventController@eventView')->where(['name' => '[A-Za-z0-9áàâãéèêíïóôõöúçñ-]+', 'id' => '[0-9]+'])->name('eventos.visualizar');
 
     Route::post('criar', 'EventController@createEventStore')->name('eventos.criar.enviar');
@@ -31,7 +40,20 @@ Route::group(['middleware' => ['auth'], 'prefix' => 'eventos'], function(){
 
     Route::get('tipos', 'EventController@types')->name('eventos.tipos');
     Route::get('tipos/{id}/editar', 'EventController@editTypes')->where(['id' => '[0-9]+'])->name('eventos.tipo.editar');
-    Route::get('tipos/get/{id}', 'EventController@editGet')->where(['id' => '[0-9]+'])->name('eventos.tipo.get');
+
+    // Nesse controler, esperando um ID de apenas número
+    // e caso essa primeira validação seja respeitada
+    // o laravel vai chamar o binding la de RouteServiceProvider:42-45
+    // e injetar dentro do controller.
+    // 
+    // Novamente, essa é mágica de IoC.
+    // 
+    // Veja um video exemplificando: https://laracasts.com/series/laravel-from-scratch-2017/episodes/9
+    // 
+    // p.s: recomendo assinar o laracasts, são ótimas aulas e são do Jeffrey Way
+    Route::get('tipos/get/{eventTypeId}', 'EventController@editGet')
+                ->where(['id' => '[0-9]+'])
+                ->name('eventos.tipo.get');
 
     // 
     Route::post('deletar', 'EventController@deletEvent')->name('eventos.deletar');

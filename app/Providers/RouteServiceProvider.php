@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Model\EventType;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 
@@ -26,6 +27,22 @@ class RouteServiceProvider extends ServiceProvider
         //
 
         parent::boot();
+
+        // Binding
+        // 
+        // O que isso afinal faz?
+        // Toda vez que você utilizar o parametro eventTypeId em uma rota
+        // o laravel vem aqui e tenta instanciar o model, se conseguir
+        // ele injeta o model DENTRO do controler, pronto para você utilizar
+        // já com o registro que você quer trabalhar, ao invés de você
+        // dentro do controller ficar fazer model::where($id)->first()
+        // 
+        // Se o registro não for encontrado, o próprio laravel já
+        // lança uma exception de ModelNotFoundException
+        Route::bind('eventTypeId', function ($eventTypeId) {
+            // API: https://laravel.com/api/5.6/Illuminate/Database/Eloquent/Builder.html#method_findOrFail
+            return EventType::findOrFail($eventTypeId);
+        });
     }
 
     /**
